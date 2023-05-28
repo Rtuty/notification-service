@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/spf13/viper"
 )
@@ -15,11 +16,24 @@ type StorageConfig struct {
 }
 
 func GetStorageConfig() (StorageConfig, error) {
-	viper.SetConfigFile("config.env")
-	viper.SetConfigType("env")
+	cfg := viper.New()
+	cfg.SetConfigName("config")
+	cfg.SetConfigType("env")
 
-	if err := viper.ReadInConfig(); err != nil {
-		panic(fmt.Errorf("не удалось прочитать файл конфигурации: %s", err))
+	root, err := filepath.Abs(".")
+	if err != nil {
+		panic(fmt.Errorf("ошибка при получении корневой директории: %s", err))
+	}
+
+	cfg.AddConfigPath(root)
+
+	err = cfg.ReadInConfig()
+	if err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			fmt.Println("Config file not found")
+		} else {
+			fmt.Printf("Fatal error config file: %s \n", err)
+		}
 	}
 
 	sc := StorageConfig{
