@@ -19,14 +19,6 @@ type Client interface {
 	Begin(ctx context.Context) (pgx.Tx, error)
 }
 
-type StorageConfig struct {
-	Host     string `json:"host"`
-	Port     string `json:"port"`
-	Database string `json:"database"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 func NewClient(ctx context.Context, maxAttempts int, sc StorageConfig) (pool *pgxpool.Pool, err error) {
 	err = DoWithTries(func() error {
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
