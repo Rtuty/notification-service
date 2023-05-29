@@ -37,11 +37,11 @@ func GetStorageConfig() (StorageConfig, error) {
 	}
 
 	sc := StorageConfig{
-		Host:     viper.GetString("HOST"),
-		Port:     viper.GetString("PORT"),
-		Database: viper.GetString("DATABASE"),
-		Username: viper.GetString("USERNAME"),
-		Password: viper.GetString("PASSWORD"),
+		Host:     cfg.GetString("HOST"),
+		Port:     cfg.GetString("PORT"),
+		Database: cfg.GetString("DATABASE"),
+		Username: cfg.GetString("USERNAME"),
+		Password: cfg.GetString("PASSWORD"),
 	}
 
 	return sc, nil
