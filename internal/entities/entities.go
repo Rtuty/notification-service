@@ -10,11 +10,11 @@ type (
 	}
 
 	Mailing struct {
-		ID         string  `json:"mailing_id"`
-		StartTime  string  `json:"start_time"`
-		FinishTime string  `json:"finish_time"`
-		Message    Message `json:"message"`
-		Filter     string  `json:"filter"`
+		ID         string `json:"mailing_id"`
+		StartTime  string `json:"start_time"`
+		FinishTime string `json:"finish_time"`
+		MessageID  string `json:"message_id"`
+		Filter     string `json:"filter"`
 	}
 
 	Message struct {
