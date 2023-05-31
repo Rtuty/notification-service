@@ -10,25 +10,35 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func GetClients(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+func pgxGetStorage(ctx context.Context) (storage.Storage, error) {
 	cfg, err := storage.GetStorageConfig()
 	if err != nil {
-		w.WriteHeader(400)
 		panic(err)
 	}
 
 	client, err := storage.NewClient(ctx, 5, cfg)
 	if err != nil {
-		w.WriteHeader(400)
 		panic(err)
 	}
 
-	allClients, err := storage.NewStorage(client).FindAllClients(ctx)
+	return storage.NewStorage(client), nil
+}
+
+func GetClients(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+
+	db, err := pgxGetStorage(context.Background())
 	if err != nil {
 		w.WriteHeader(400)
 		panic(err)
 	}
+
+	allClients, err := db.FindAllClients(ctx)
+	if err != nil {
+		w.WriteHeader(400)
+		panic(err)
+	}
+
 	json.NewEncoder(w).Encode(allClients)
 }
 
