@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"notification-service/internal/entities"
 
 	"github.com/jackc/pgconn"
@@ -32,7 +33,9 @@ func NewStorage(client Client) Storage {
 var PgErr *pgconn.PgError
 var ErrQ error
 
-/* Функции для объекта клиента :
+/*
+	Функции для объекта клиента :
+
 AddClient,
 UpdateClient,
 FindAllClients,
@@ -107,7 +110,9 @@ func (db *db) FindAllClients(ctx context.Context) ([]entities.Client, error) {
 	return clients, nil
 }
 
-/* Функции для объекта рассылки :
+/*
+	Функции для объекта рассылки :
+
 AddMailing,
 UpdateMailing,
 GetMailingStatistics,

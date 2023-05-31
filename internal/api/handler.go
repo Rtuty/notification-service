@@ -27,7 +27,7 @@ func pgxGetStorage(ctx context.Context) (storage.Storage, error) {
 func GetClients(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
-	db, err := pgxGetStorage(context.Background())
+	db, err := pgxGetStorage(ctx)
 	if err != nil {
 		w.WriteHeader(400)
 		panic(err)
