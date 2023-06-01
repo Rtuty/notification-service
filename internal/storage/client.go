@@ -2,7 +2,7 @@ package storage
 
 import (
 	"fmt"
-	"log"
+	"notification-service/pkg/logger"
 
 	"time"
 
@@ -19,7 +19,7 @@ type Client interface {
 	Begin(ctx context.Context) (pgx.Tx, error)
 }
 
-func NewClient(ctx context.Context, maxAttempts int, sc StorageConfig) (pool *pgxpool.Pool, err error) {
+func NewClient(ctx context.Context, maxAttempts int, sc StorageConfig, log *logger.Logger) (pool *pgxpool.Pool, err error) {
 	err = DoWithTries(func() error {
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()

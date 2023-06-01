@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"notification-service/internal/storage"
+	"notification-service/pkg/logger"
 
 	"github.com/gorilla/mux"
 )
 
-func Handle(ctx context.Context, conenct storage.Storage) {
+func Handle(ctx context.Context, conenct storage.Storage, log *logger.Logger) {
 	router := mux.NewRouter()
-	con := NewServer(conenct)
+	con := NewServer(conenct, log)
 
 	// Определение маршрутов и обработчиков запросов
 	router.HandleFunc("/clients", con.GetClients).Methods("GET")
