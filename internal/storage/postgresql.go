@@ -12,10 +12,11 @@ import (
 type Storage interface {
 	AddClient(ctx context.Context, cl *entities.Client) error
 	UpdateClient(ctx context.Context, cl *entities.Client, id string) error
-	FindAllClients(ctx context.Context) (cl []entities.Client, err error)
+	GetAllClients(ctx context.Context) (cl []entities.Client, err error)
 
 	AddMailing(ctx context.Context, m *entities.Mailing) error
 	UpdateMailing(ctx context.Context, m *entities.Mailing, id string) error
+	GetAllMailings(ctx context.Context) ([]entities.Mailing, error)
 	GetMailingStatistics(ctx context.Context) (res string, err error) //todo
 
 	DeleteRow(ctx context.Context, id string, tbl string) error
@@ -33,11 +34,10 @@ var PgErr *pgconn.PgError
 var ErrQ error
 
 /*
-	Функции для объекта клиента :
-
-AddClient,
-UpdateClient,
-FindAllClients,
+Функции для объекта клиента :
+	AddClient,
+	UpdateClient,
+	FindAllClients,
 */
 func (db *db) AddClient(ctx context.Context, cl *entities.Client) error {
 	q := `
@@ -85,7 +85,7 @@ func (db *db) UpdateClient(ctx context.Context, cl *entities.Client, id string) 
 	return nil
 }
 
-func (db *db) FindAllClients(ctx context.Context) ([]entities.Client, error) {
+func (db *db) GetAllClients(ctx context.Context) ([]entities.Client, error) {
 	q := `select id, phone_number, phone_code, tag, time_zone from clients`
 
 	rows, err := db.client.Query(ctx, q)
@@ -110,11 +110,10 @@ func (db *db) FindAllClients(ctx context.Context) ([]entities.Client, error) {
 }
 
 /*
-	Функции для объекта рассылки :
-
-AddMailing,
-UpdateMailing,
-GetMailingStatistics,
+Функции для объекта рассылки :
+	AddMailing,
+	UpdateMailing,
+	GetMailingStatistics,
 */
 func (db *db) AddMailing(ctx context.Context, m *entities.Mailing) error {
 	q := `

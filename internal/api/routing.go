@@ -14,14 +14,79 @@ type dbConnect struct {
 	con storage.Storage
 }
 
+var ClientData *entities.Client
+var MailingData *entities.Mailing
+
 func (db *dbConnect) GetClients(w http.ResponseWriter, r *http.Request) {
-	allClients, err := db.con.FindAllClients(r.Context())
+	clients, err := db.con.GetAllClients(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(allClients)
+	json.NewEncoder(w).Encode(clients)
+}
+
+func (db *dbConnect) GetMailings(w http.ResponseWriter, r *http.Request) {
+	mailings, err := db.con.GetAllMailings(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(mailings)
+}
+
+func (db *dbConnect) CreateObject(w http.ResponseWriter, r *http.Request) {
+	tbl := mux.Vars(r)["tbl"]
+
+	switch tbl {
+	case "client":
+		if err := json.NewDecoder(r.Body).Decode(&ClientData); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
+		if err := db.con.AddClient(r.Context(), ClientData); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+	case "mailing":
+		if err := json.NewDecoder(r.Body).Decode(&MailingData); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
+		if err := db.con.AddMailing(r.Context(), MailingData); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+	}
+}
+
+func (db *dbConnect) UpdateObject(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	tbl := vars["tbl"]
+
+	switch tbl {
+	case "clients":
+
+		if err := json.NewDecoder(r.Body).Decode(&ClientData); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
+		if err := db.con.UpdateClient(r.Context(), ClientData, id); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+	case "mailing":
+		if err := json.NewDecoder(r.Body).Decode(&MailingData); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
+		if err := db.con.UpdateMailing(r.Context(), MailingData, id); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(fmt.Sprintf("строка таблицы %s с id: %s была обновлена", tbl, id))
 }
 
 func (db *dbConnect) DeleteObject(w http.ResponseWriter, r *http.Request) {
@@ -35,20 +100,4 @@ func (db *dbConnect) DeleteObject(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(fmt.Sprintf("строка с id: %s была удалена из таблицы: %s", id, tbl))
-}
-
-func (db *dbConnect) UpdateClient(w http.ResponseWriter, r *http.Request) {
-	var data *entities.Client
-	id := mux.Vars(r)["id"]
-
-	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-	}
-
-	if err := db.con.UpdateClient(r.Context(), data, id); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(fmt.Sprintf("строка таблицы clients с id: %s была обновлена", id))
 }
