@@ -6,19 +6,26 @@ import (
 	"net/http"
 	"notification-service/internal/entities"
 	"notification-service/internal/storage"
+	"sync"
 
 	"github.com/gorilla/mux"
 )
 
-type dbConnect struct {
-	con storage.Storage
+type server struct {
+	con         storage.Storage
+	clientData  *entities.Client
+	mailingData *entities.Mailing
+	mu          sync.RWMutex
 }
 
-var ClientData *entities.Client
-var MailingData *entities.Mailing
+func NewServer(con storage.Storage) *server {
+	return &server{
+		con: con,
+	}
+}
 
-func (db *dbConnect) GetClients(w http.ResponseWriter, r *http.Request) {
-	clients, err := db.con.GetAllClients(r.Context())
+func (s *server) GetClients(w http.ResponseWriter, r *http.Request) {
+	clients, err := s.con.GetAllClients(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
@@ -27,8 +34,8 @@ func (db *dbConnect) GetClients(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(clients)
 }
 
-func (db *dbConnect) GetMailings(w http.ResponseWriter, r *http.Request) {
-	mailings, err := db.con.GetAllMailings(r.Context())
+func (s *server) GetMailings(w http.ResponseWriter, r *http.Request) {
+	mailings, err := s.con.GetAllMailings(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
@@ -37,50 +44,56 @@ func (db *dbConnect) GetMailings(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(mailings)
 }
 
-func (db *dbConnect) CreateObject(w http.ResponseWriter, r *http.Request) {
+func (s *server) CreateObject(w http.ResponseWriter, r *http.Request) {
 	tbl := mux.Vars(r)["tbl"]
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	switch tbl {
 	case "client":
-		if err := json.NewDecoder(r.Body).Decode(&ClientData); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&s.clientData); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
-		if err := db.con.AddClient(r.Context(), ClientData); err != nil {
+		if err := s.con.AddClient(r.Context(), s.clientData); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	case "mailing":
-		if err := json.NewDecoder(r.Body).Decode(&MailingData); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&s.mailingData); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
-		if err := db.con.AddMailing(r.Context(), MailingData); err != nil {
+		if err := s.con.AddMailing(r.Context(), s.mailingData); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	}
 }
 
-func (db *dbConnect) UpdateObject(w http.ResponseWriter, r *http.Request) {
+func (s *server) UpdateObject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	tbl := vars["tbl"]
 
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	switch tbl {
 	case "clients":
 
-		if err := json.NewDecoder(r.Body).Decode(&ClientData); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&s.clientData); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
-		if err := db.con.UpdateClient(r.Context(), ClientData, id); err != nil {
+		if err := s.con.UpdateClient(r.Context(), s.clientData, id); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	case "mailing":
-		if err := json.NewDecoder(r.Body).Decode(&MailingData); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&s.mailingData); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
-		if err := db.con.UpdateMailing(r.Context(), MailingData, id); err != nil {
+		if err := s.con.UpdateMailing(r.Context(), s.mailingData, id); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	}
@@ -89,12 +102,12 @@ func (db *dbConnect) UpdateObject(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(fmt.Sprintf("строка таблицы %s с id: %s была обновлена", tbl, id))
 }
 
-func (db *dbConnect) DeleteObject(w http.ResponseWriter, r *http.Request) {
+func (s *server) DeleteObject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	tbl := vars["tbl"]
 
-	if err := db.con.DeleteRow(r.Context(), id, tbl); err != nil {
+	if err := s.con.DeleteRow(r.Context(), id, tbl); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 

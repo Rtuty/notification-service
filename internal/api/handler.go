@@ -11,14 +11,14 @@ import (
 
 func Handle(ctx context.Context, conenct storage.Storage) {
 	router := mux.NewRouter()
-	con := &dbConnect{con: conenct}
+	con := NewServer(conenct)
 
 	// Определение маршрутов и обработчиков запросов
 	router.HandleFunc("/clients", con.GetClients).Methods("GET")
 	router.HandleFunc("/mailings", con.GetMailings).Methods("GET")
 	router.HandleFunc("/add/{tbl}", con.CreateObject).Methods("POST")
 
-	router.HandleFunc("/update/{tbl}/{id}", con.UpdateObject).Methods("UPDATE")
+	router.HandleFunc("/update/{tbl}/{id}", con.UpdateObject).Methods("PUT")
 	router.HandleFunc("/delete/{tbl}/{id}", con.DeleteObject).Methods("DELETE")
 
 	// Запуск сервера
