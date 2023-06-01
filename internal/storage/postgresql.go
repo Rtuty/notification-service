@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"notification-service/internal/entities"
 
 	"github.com/jackc/pgconn"
